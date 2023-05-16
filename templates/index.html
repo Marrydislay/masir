@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>和 GPT-4 聊天</title>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <style>
+       /* ... 其他样式 ... */
+
+         .message {
+            position: relative;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 50px;  /* 将圆角曲率设置为50px */
+            line-height: 1.5;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            word-break: break-all;
+        }
+
+
+          /* 设置用户消息的样式 */
+        .user {
+            background: rgba(34, 167, 240, 0.8);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+
+
+        /* 设置助手消息的样式 */
+        .assistant {
+            background: rgba(46, 204, 113, 0.8);
+            color: white;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+          /* 设置气泡内字体的大小 */
+        .message .content {
+            font-size: 50px;
+        }
+
+        /* ... 其他样式 ... */
+
+        /* 其他样式 */
+
+        /* 设置 body 和 html 的默认样式 */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 设置包含聊天框和输入容器的容器的样式 */
+       .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        /* 设置显示消息的聊天框的样式 */
+            #chatbox {
+            position: relative;
+            width: 90%;
+            height: 99%;  /* 高度设置为99% */
+            padding: 10px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.5);
+            border: 5px solid #ccc;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+            border-radius: 50px;
+        }
+
+
+        /* 设置包含输入框和发送按钮的输入容器的样式 */
+          #inputContainer {
+            position: absolute;
+            bottom: 0;
+            display: flex;
+            justify-content: space-between;
+            width: 97%;
+            height: 10%;  /* 高度设置为10% */
+            padding: 0;
+            margin-top: 10px;
+             margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.5);
+            border: 5px solid #ccc;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
+            border-radius: 25px;
+        }
+
+        /* 设置用户输入消息的输入框的样式 */
+        #inputbox {
+            flex-grow: 1; /* 使用 flex-grow 替代宽度，以自动适应容器宽度 */
+            padding: 1px;
+            border: 1px solid #ccc;
+            border-right: none;
+            outline-color: green;
+            border-radius: 20px 0px 0px 20px;
+            resize: none; /* 禁止用户调整textarea大小 */
+            overflow: auto; /* 当文本内容超出可视区域时出现滚动条 */
+            text-align: center; /* 设置文本居中 */
+            font-size: 50px; /* 设置字体大小为50px */
+        }
+
+        /* 设置发送按钮的样式 */
+        button {
+            padding: 20px 40px;  /* 调整按钮大小 */
+            background: #4CAF50;
+            cursor: pointer;
+            outline: none;
+            border: none;
+            border-radius: 0px 20px 20px 0px;
+            color: #FFFFFF;
+            /* 设置文
+            /* 设置文本粗细为粗体 */
+            font-weight: bold;
+             font-size: 50px;
+        }
+
+        /* 设置鼠标悬停在发送按钮上时的样式 */
+        button:hover {
+            background: #eee;
+        }
+
+        /* 设置输入框和按钮获取焦点时的样式 */
+        input:focus, button:focus {
+            outline: none !important;
+            border:1px solid #9ecaed;
+            box-shadow: 0 0 10px #9ecaed;
+        }
+    </style>
+</head>
+<body>
+      <div class="container">
+        <!-- 上区域：显示聊天记录 -->
+        <div id="chatbox">
+            <!-- 下区域：输入和发送消息 -->
+            <div id="inputContainer">
+                <textarea id="inputbox" autocomplete="off" placeholder="小常识：据说没有什么问题是能够难倒BUTbot的"></textarea>
+                <!-- 更改按钮的文本 -->
+                <button onclick="sendMessage()">Go!</button>
+            </div>
+    </div>
+
+    <script>
+        let chatLog = [];
+
+        /* 发送消息的函数 */
+        function sendMessage() {
+            let inputbox = document.getElementById('inputbox');
+            let message = inputbox.value;
+            inputbox.value = '';
+
+            let chatbox = document.getElementById('chatbox');
+            chatbox.innerHTML += `<div class='message user'>你：${message}</div>`;
+
+            /* 发送ajax请求，获取助手的回复 */
+            $.ajax({
+                url: '/chat',
+                type: 'post',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    'message': message,
+                    'chat_log': chatLog
+                }),
+                success: function(res) {
+                    chatLog = res.chat_log;
+                    chatbox.innerHTML += `<div class='message assistant'>GPT-4：${res.message}</div>`;
+                    chatbox.scrollTop = chatbox.scrollHeight; /* 自动滚动到聊天框底部 */
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
